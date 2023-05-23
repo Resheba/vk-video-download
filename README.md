@@ -1,0 +1,2 @@
+# vk-video-download
+The script downloads videos from VKontakte. The link to the video can be obtained via the VK API.
