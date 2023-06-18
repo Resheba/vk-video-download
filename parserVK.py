@@ -17,11 +17,20 @@ headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
 }
 
-def download(url: str, filename: str = 'video') -> None :
+
+def download(url: str, filename: str = 'video') -> None:
     with open(filename + '.mp4', 'wb') as file:
         response = requests.get(url, headers=headers, stream=True)
         for chunk in response.iter_content(1024 * 1000):
             file.write(chunk)
+
+
+def get_player_url(url: str) -> str:
+    response = requests.get(url, headers=headers)
+    soup = bs(response.text, 'html.parser')
+    meta_og_video = soup.find("meta", property="og:video")
+    return meta_og_video.attrs['content']
+
 
 def get_video_url(pleer_url: str) -> str:
     # GET HTML
@@ -31,20 +40,29 @@ def get_video_url(pleer_url: str) -> str:
     js_code = soup.select_one('body > script:nth-child(11)').text
     first_split = js_code.split('var playerParams = ')[1]
     second_split = first_split.split('var container')[0]
-    replacements = second_split.strip().replace(' ', '').replace('\n', '').replace(';','')
+    replacements = second_split.strip().replace(' ', '').replace('\n', '').replace(';', '')
     # JS TO JSON
     info = json.loads(replacements)
     info = info.get('params')[0]
     # GET VIDEO URL
     for quality in ('1080', '720', '480', '360', '240'):
-        url = info.get('url'+quality)
-        if url: 
+        url = info.get('url' + quality)
+        if url:
             url = url.replace('\\', '')
             return url
 
-def download_video(pleer_url: str, filename: str = 'video') -> None:
-    url = get_video_url(pleer_url)
-    download(url, filename)
+
+def download_video(video_url: str, filename: str = 'video') -> None:
+    player_url = get_player_url(video_url)
+    download_url = get_video_url(player_url)
+    download(download_url, filename)
+
+
+# avoid shadow scope
+def main():
+    video_url = "https://vk.com/video-22822305_456239018"
+    download_video(video_url)
+
 
 if __name__ == '__main__':
-    download_video('https://vk.com/video_ext.php?oid=-22822305&id=456242110&hash=e037414127166efe&__ref=vk.api&api_hash=1677682946870d1f6fa590a9b323_HAZDCNJWG42DA')
+    main()
