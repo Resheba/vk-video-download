@@ -52,16 +52,16 @@ def get_video_url(pleer_url: str) -> str:
             return url
 
 
-def download_video(video_url: str, filename: str = 'video') -> None:
+def download_video(video_url: str, filename: str = 'video', *, start: int = 0) -> None:
     player_url = get_player_url(video_url)
-    download_url = get_video_url(player_url)
+    download_url = get_video_url(player_url) + f'&start={start}'
     download(download_url, filename)
 
 
 # avoid shadow scope
 def main():
     video_url = "https://vk.com/video-22822305_456239018"
-    download_video(video_url)
+    download_video(video_url, start=60)
 
 
 if __name__ == '__main__':
