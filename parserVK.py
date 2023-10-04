@@ -37,7 +37,7 @@ def get_video_url(pleer_url: str) -> str:
     response = requests.get(pleer_url, headers=headers)
     soup = bs(response.text, 'html.parser')
     # CLEAN JS CODE
-    js_code = soup.select_one('body > script:nth-child(11)').text
+    js_code = soup.select_one('body > script:nth-child(12)').text
     first_split = js_code.split('var playerParams = ')[1]
     second_split = first_split.split('var container')[0]
     replacements = second_split.strip().replace(' ', '').replace('\n', '').replace(';', '')
