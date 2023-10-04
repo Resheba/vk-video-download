@@ -18,8 +18,8 @@ headers = {
 }
 
 
-def download(url: str, filename: str = 'video') -> None:
-    with open(filename + '.mp4', 'wb') as file:
+def download(url: str, filename: str = 'video.mp4') -> None:
+    with open(filename, 'wb') as file:
         response = requests.get(url, headers=headers, stream=True)
         for chunk in response.iter_content(1024 * 1000):
             file.write(chunk)
@@ -32,7 +32,7 @@ def get_player_url(url: str) -> str:
     return meta_og_video.attrs['content']
 
 
-def get_video_url(pleer_url: str) -> str:
+def get_video_url(pleer_url: str, video_quality: str = '-1') -> str:
     # GET HTML
     response = requests.get(pleer_url, headers=headers)
     soup = bs(response.text, 'html.parser')
@@ -45,23 +45,29 @@ def get_video_url(pleer_url: str) -> str:
     info = json.loads(replacements)
     info = info.get('params')[0]
     # GET VIDEO URL
-    for quality in ('1080', '720', '480', '360', '240'):
+    # gives specified "video_quality" priority if "video_quality" is being passed in and it does exist.
+    legal_qualities = [video_quality] + ['1080', '720', '480', '360', '240']  
+    for quality in legal_qualities:
         url = info.get('url' + quality)
         if url:
             url = url.replace('\\', '')
             return url
 
 
-def download_video(video_url: str, filename: str = 'video', *, start: int = 0) -> None:
+def download_video(video_url: str, video_quality: str, filename: str, start_sec: int = 0) -> None:
     player_url = get_player_url(video_url)
-    download_url = get_video_url(player_url) + f'&start={start}'
+    download_url = get_video_url(player_url, video_quality) + f'&start={start_sec}'
     download(download_url, filename)
 
 
 # avoid shadow scope
 def main():
     video_url = "https://vk.com/video-22822305_456239018"
-    download_video(video_url, start=60)
+    video_quality = '1080'
+    filename = './video_from_VK.mp4'
+    start_sec = (lambda t: t[0]*3600 + t[1]*60 + t[2])((0, 0, 0))   # hours, minutes, seconds
+
+    download_video(video_url, video_quality, filename, start_sec)
 
 
 if __name__ == '__main__':
